@@ -13,16 +13,17 @@ npm install
 ```
 to download necessary modules. (N.B. Puppeteer is a biiiig module).
 Modifiy the .env file adding your Linkedin username(email) and password.
-
 In order to properly set the LINKEDIN_COURSE, open the course you are interested in, e.g.:
-'''
+```
 https://www.linkedin.com/learning/node-js-deploying-applications
-'''
+```
 The last part of the url is what we are interested in.
-'''
+```
 node-js-deploying-applications
-'''
+```
 Now, execute the .js file to download the course:
-'''
+
+```
 node ./index.js
-'''
+
+```
