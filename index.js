@@ -46,7 +46,8 @@ const course_name = process.env.LINKEDIN_COURSE;
         // Then move to the learning section in the selected course's homepage (linkedin premium needed)
         console.log('Heading to Linkedin Learning Page');
         await page.goto(course_landing_page);
-        await page.waitFor('.course-body__info-tab-name.course-body__info-tab-name-content.ember-view');
+        // FORCED 2 seconds timeout
+        await timeout(2000);
         console.log('Looking  for content section');
         // Click on "Content" section
         await page.click('.course-body__info-tab-name.course-body__info-tab-name-content.ember-view');
@@ -205,3 +206,5 @@ function download_exercise_files(page) {
         }
     });
 }
+
+const timeout = ms => new Promise(res => setTimeout(res, ms))
