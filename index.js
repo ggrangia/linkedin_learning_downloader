@@ -46,11 +46,8 @@ const course_name = process.env.LINKEDIN_COURSE;
         // Then move to the learning section in the selected course's homepage (linkedin premium needed)
         console.log('Heading to Linkedin Learning Page');
         await page.goto(course_landing_page);
-        //await page.waitFor('.toc-item.ember-view');
-        await page.waitForNavigation({
-            waitUntil: 'networkidle0'
-        });
-
+        await page.waitFor('.course-body__info-tab-name.course-body__info-tab-name-content.ember-view');
+        console.log('Looking  for content section');
         // Click on "Content" section
         await page.click('.course-body__info-tab-name.course-body__info-tab-name-content.ember-view');
 
