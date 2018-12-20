@@ -63,148 +63,137 @@ const course_name = process.env.LINKEDIN_COURSE;
         await browser.close();
         console.log('DONE!')
     } catch (e) {
-        //console.log('Error [Upper level]: ', e),
         console.log('Closing...');
         await browser.close();
     }
 })();
 
-function processData(page, content) {
 
-    return new Promise(async (resolve, reject) => {
-        try {
-            if (!content || content.length === 0) {
-                console.log('Did not find any content. There might be two possibilities:\n1 - Your credentials are wrong\n2 - The course\'s name is wrong');
-                return resolve();
-            }
-
-            let dir = `./${root_folder}`
-            if (!fs.existsSync(dir)) {
-                console.log(`Creating folder ${root_folder}`);
-                fs.mkdirSync(dir);
-            }
-            dir = `./${root_folder}/${course_name}`
-            if (!fs.existsSync(dir)) {
-                console.log(`Creating folder ${course_name}`);
-                fs.mkdirSync(dir);
-            }
-
-            await download_exercise_files(page);
-            for (const el of content) {
-                await find_uri_and_download(page, el)
-            }
+const processData = (page, content) => new Promise(async (resolve, reject) => {
+    try {
+        if (!content || content.length === 0) {
+            console.log('Did not find any content. There might be two possibilities:\n1 - Your credentials are wrong\n2 - The course\'s name is wrong');
             return resolve();
-        } catch (e) {
-            return reject(e);
         }
-    });
-}
 
-function find_uri_and_download(page, content) {
-
-    return new Promise(async (resolve, reject) => {
-        try {
-            let name = path.basename(content).split('?')[0];
-            console.log('Content name: ', name);
-            await Promise.all([
-                page.goto(content),
-                page.waitForNavigation({
-                    waitUntil: 'domcontentloaded'
-                })
-            ]);
-
-            let uri = await page.evaluate(() => {
-                let src = document.querySelector('.vjs-tech');
-                return ((src) ? src.src : null)
-            });
-            if (!uri) {
-                console.log('Skipping content. src not found...');
-                return resolve();
-            }
-
-            await Promise.all([
-                download_uri(uri, name),
-                download_transcripts(page, name)
-            ]);
-            i = i + 1;
-            return resolve();
-        } catch (err) {
-            return reject(err);
+        let dir = `./${root_folder}`
+        if (!fs.existsSync(dir)) {
+            console.log(`Creating folder ${root_folder}`);
+            fs.mkdirSync(dir);
         }
-    });
-}
+        dir = `./${root_folder}/${course_name}`
+        if (!fs.existsSync(dir)) {
+            console.log(`Creating folder ${course_name}`);
+            fs.mkdirSync(dir);
+        }
+
+        await download_exercise_files(page);
+        for (const el of content) {
+            await find_uri_and_download(page, el)
+        }
+        return resolve();
+    } catch (e) {
+        return reject(e);
+    }
+});
 
 
-function download_uri(uri, name) {
+const find_uri_and_download = (page, content) => new Promise(async (resolve, reject) => {
+    try {
+        let name = path.basename(content).split('?')[0];
+        console.log('Content name: ', name);
+        await Promise.all([
+            page.goto(content),
+            page.waitForNavigation({
+                waitUntil: 'domcontentloaded'
+            })
+        ]);
 
-    return new Promise((resolve, reject) => {
-        const file = fs.createWriteStream(`./${root_folder}/${course_name}/${i}-${name}.mp4`);
-        const request = https.get(uri, function (response) {
-            response.pipe(file);
-            console.log(`Finished downloading ${name}`);
-            return resolve();
+        let uri = await page.evaluate(() => {
+            let src = document.querySelector('.vjs-tech');
+            return ((src) ? src.src : null)
         });
-    });
-}
-
-function download_transcripts(page, name) {
-
-    return new Promise(async (resolve, reject) => {
-        try {
-            await page.click('.course-body__info-tab-name.course-body__info-tab-name-transcripts.ember-view');
-            let transcript = await page.evaluate(() => {
-                let trcps = [...document.querySelectorAll('.transcript')];
-                return trcps.map((t) => t.innerText);
-            });
-            let txt = transcript.join(' ');
-            fs.writeFile(`./${root_folder}/${course_name}/${i}-${name}.txt`, txt, function (err) {
-                if (err) {
-                    console.log('An error occurred while looking for transcripts. Skipping...');
-                    return resolve();
-                } else {
-                    return resolve();
-                }
-            });
-        } catch (err) {
-            console.log('An error occurred while looking for transcripts. Skipping...');
+        if (!uri) {
+            console.log('Skipping content. src not found...');
             return resolve();
         }
+
+        await Promise.all([
+            download_uri(uri, name),
+            download_transcripts(page, name)
+        ]);
+        i = i + 1;
+        return resolve();
+    } catch (err) {
+        return reject(err);
+    }
+});
+
+
+const download_uri = (uri, name) => new Promise((resolve, reject) => {
+    const file = fs.createWriteStream(`./${root_folder}/${course_name}/${i}-${name}.mp4`);
+    const request = https.get(uri, function (response) {
+        response.pipe(file);
+        console.log(`Finished downloading ${name}`);
+        return resolve();
     });
-}
+});
 
-function download_exercise_files(page) {
 
-    return new Promise(async (resolve, reject) => {
-        try {
-            await page.click('.course-body__info-tab-name.course-body__info-tab-name-exercise-files.ember-view');
-            let files = await page.evaluate(() => {
-                let f_ex = [...document.querySelectorAll('.exercise-file-download.ember-view')];
-                return f_ex.map((f) => f.href);
-            });
-            if (!files || files.length === 0) {
-                console.log('Could not find any exercise file');
+const download_transcripts = (page, name) => new Promise(async (resolve, reject) => {
+    try {
+        await page.click('.course-body__info-tab-name.course-body__info-tab-name-transcripts.ember-view');
+        let transcript = await page.evaluate(() => {
+            let trcps = [...document.querySelectorAll('.transcript')];
+            return trcps.map((t) => t.innerText);
+        });
+        let txt = transcript.join(' ');
+        fs.writeFile(`./${root_folder}/${course_name}/${i}-${name}.txt`, txt, function (err) {
+            if (err) {
+                console.log('An error occurred while looking for transcripts. Skipping...');
+                return resolve();
+            } else {
                 return resolve();
             }
-            files.map((f) => {
-                let name = path.basename(f).split('?')[0];
-                const ex = fs.createWriteStream(`./${root_folder}/${course_name}/${name}`);
-                ex.on('error', function (err) {
-                    console.log(err);
-                    ex.end();
-                    return reject(err);
-                });
-                const request = https.get(f, function (response) {
-                    response.pipe(ex);
-                    console.log('Finished downloading exercise files');
-                    return;
-                });
-            });
-            return resolve();
-        } catch (err) {
-            console.log('An error occurred while looking for exercises. Skipping...');
+        });
+    } catch (err) {
+        console.log('An error occurred while looking for transcripts. Skipping...');
+        return resolve();
+    }
+});
+
+
+const download_exercise_files = page => new Promise(async (resolve, reject) => {
+    try {
+        await page.click('.course-body__info-tab-name.course-body__info-tab-name-exercise-files.ember-view');
+        let files = await page.evaluate(() => {
+            let f_ex = [...document.querySelectorAll('exercise-file-link.exercise-file-unlocked.ember-view')];
+            return f_ex.map((f) => f.href);
+        });
+        if (!files || files.length === 0) {
+            console.log('Could not find any exercise file');
             return resolve();
         }
-    });
-}
+        files.map((f) => {
+            let name = path.basename(f).split('?')[0];
+            const ex = fs.createWriteStream(`./${root_folder}/${course_name}/${name}`);
+            ex.on('error', function (err) {
+                console.log(err);
+                ex.end();
+                return reject(err);
+            });
+            const request = https.get(f, function (response) {
+                response.pipe(ex);
+                console.log('Finished downloading exercise files');
+                return;
+            });
+        });
+        return resolve();
+    } catch (err) {
+        console.log('An error occurred while looking for exercises. Skipping...');
+        return resolve();
+    }
+});
+
 
 const timeout = ms => new Promise(res => setTimeout(res, ms))
