@@ -167,7 +167,7 @@ const download_exercise_files = page => new Promise(async (resolve, reject) => {
     try {
         await page.click('.course-body__info-tab-name.course-body__info-tab-name-exercise-files.ember-view');
         let files = await page.evaluate(() => {
-            let f_ex = [...document.querySelectorAll('exercise-file-link.exercise-file-unlocked.ember-view')];
+            let f_ex = [...document.querySelectorAll('.exercise-file-link.exercise-file-unlocked.ember-view')];
             return f_ex.map((f) => f.href);
         });
         if (!files || files.length === 0) {
