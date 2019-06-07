@@ -21,7 +21,13 @@ The last part of the url is what we are interested in.
 ```
 node-js-deploying-applications
 ```
-Now, execute the .js file to download the course:
+The .env file should look like this:
+```
+LINKEDIN_EMAIL=your.linkedin@email.com
+LINKEDIN_PASSWORD=your_linkedin_password
+LINKEDIN_COURSE=node-js-deploying-applications
+```
+Now, start the .js script to download the course:
 
 ```
 node ./index.js
